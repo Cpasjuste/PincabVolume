@@ -3,7 +3,8 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:v="clr-namespace:PincabVolume.Views"
         xmlns:c="clr-namespace:PincabVolume.Converters"
-        x:Name="Root" Title="Pincab Volume" Width="780" Height="470" MinWidth="700" MinHeight="450"
+        x:Name="Root" Title="Pincab Volume" Width="780" Height="500" MinWidth="700" MinHeight="490"
+        Icon="/Assets/AppIcon.ico"
         WindowStartupLocation="CenterScreen" Style="{StaticResource AppWindow}">
     <Window.Resources>
         <c:ActiveProfileConverter x:Key="ActiveProfile" />
@@ -116,6 +117,7 @@
                             <RowDefinition Height="Auto" />
                             <RowDefinition Height="Auto" />
                             <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
                             <RowDefinition />
                             <RowDefinition Height="Auto" />
                         </Grid.RowDefinitions>
@@ -157,7 +159,21 @@
                                     Value="{Binding MaxVolume}" />
                         </DockPanel>
 
-                        <StackPanel Grid.Row="8" Grid.ColumnSpan="2" Orientation="Horizontal"
+                        <TextBlock Grid.Row="7" Text="Table default" Style="{StaticResource FieldLabel}"
+                                   ToolTip="Volume for tables you haven't adjusted yet. When off, they start at the System volume." />
+                        <DockPanel Grid.Row="7" Grid.Column="1" Margin="0,0,0,8">
+                            <CheckBox x:Name="UseDefaultSwitch" DockPanel.Dock="Left" VerticalAlignment="Center"
+                                      Margin="0,0,12,0" IsChecked="{Binding UseDefaultVolume}"
+                                      ToolTip="Use a fixed volume for tables without a saved volume" />
+                            <TextBox DockPanel.Dock="Right" Style="{StaticResource ValueBox}"
+                                     Text="{Binding DefaultVolume}"
+                                     IsEnabled="{Binding IsChecked, ElementName=UseDefaultSwitch}" />
+                            <Slider Minimum="0" Maximum="100" IsSnapToTickEnabled="True" TickFrequency="1"
+                                    SmallChange="1" LargeChange="5" Value="{Binding DefaultVolume}"
+                                    IsEnabled="{Binding IsChecked, ElementName=UseDefaultSwitch}" />
+                        </DockPanel>
+
+                        <StackPanel Grid.Row="9" Grid.ColumnSpan="2" Orientation="Horizontal"
                                     HorizontalAlignment="Right">
                             <Button Click="TestDown_Click" ToolTip="Lower this device's volume by one step">
                                 <StackPanel Orientation="Horizontal">

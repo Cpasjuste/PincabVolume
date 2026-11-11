@@ -35,7 +35,10 @@ public sealed class VolumeManager
         return bucket;
     }
 
-    /// <summary>Restores every profile's volume for the current table (falling back to the system volume).</summary>
+    /// <summary>
+    /// Restores every profile's volume for the current context:
+    /// saved table volume → profile's table default (if enabled, tables only) → System volume.
+    /// </summary>
     public void ApplyContext()
     {
         var system = Bucket(SystemKey);
@@ -43,11 +46,15 @@ public sealed class VolumeManager
 
         foreach (var p in Config.Profiles)
         {
-            // First time we see a profile: adopt its current device volume as the system default.
+            // First time we see a profile: adopt its current device volume as the System volume.
             if (!system.ContainsKey(p.Id) && AudioService.GetVolume(p.DeviceId) is int current) system[p.Id] = current;
 
-            if ((table != null && table.TryGetValue(p.Id, out var v)) || system.TryGetValue(p.Id, out v))
-                AudioService.SetVolume(p.DeviceId, Math.Min(v, p.MaxVolume));
+            int? volume = null;
+            if (table != null && table.TryGetValue(p.Id, out var saved)) volume = saved;
+            else if (CurrentTable != null && p.UseDefaultVolume) volume = p.DefaultVolume;
+            else if (system.TryGetValue(p.Id, out var sys)) volume = sys;
+
+            if (volume is int v) AudioService.SetVolume(p.DeviceId, Math.Min(v, p.MaxVolume));
         }
 
         _store.SaveSoon();

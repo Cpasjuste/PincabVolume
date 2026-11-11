@@ -42,6 +42,7 @@ volume knob is somewhere behind the cabinet, under three cables and a spider �
 | ✋ **Hold keys** | Share the same Volume +/− buttons between profiles: hold a key/button to pick which device you're adjusting. |
 | 🧠 **Per-table memory** | Volume is saved per table *and* per profile, plus a **System** volume for when nothing is running. |
 | 📺 **Rotatable OSD** | 0° / 90° / 180° / 270°, 9 anchor points, pixel offsets, scale and duration. Click-through and never steals focus. |
+| 🎯 **Table default volume** | Optional per-profile starting volume for tables you haven't tuned yet. |
 | 🔒 **Max volume cap** | Protect your speakers (and your neighbours 🏘️) with a per-profile ceiling. |
 | 🌙 **Dark UI** | Compact, custom-themed dark settings window. No eye-searing white boxes at 2 AM. |
 | 🫥 **Tray app** | Starts minimized (once configured), lives in the tray, optional *run at logon*. |
@@ -112,8 +113,12 @@ Pincab Volume polls the windows every ¾ second 👀:
 When the context changes, every profile's volume is restored from memory (capped at its max volume), and the OSD
 shows the active profile's level. 🔁
 
-If you change the volume during a table, that table remembers it. A table you never adjusted simply uses the System
-volume. 🤷
+If you change the volume during a table, that table remembers it. For a table you never adjusted, each profile picks:
+
+1. 🎯 its **Table default** volume, if that switch is on (great for a sane starting level on brand-new tables)
+2. 🏠 otherwise, the **System** volume
+
+Quit the table and the **System** volume comes right back. 🔁
 
 ---
 
@@ -186,6 +191,7 @@ green dot 🟢. Detection needs VPX's player window and its `Visual Pinball - [T
 ```
 PincabVolume/
 ├── 📄 App.xaml(.cs)            startup, single instance, wiring
+├── 📁 Assets/AppIcon.ico       app icon (exe, window, tray) 🎨
 ├── 📁 Core/
 │   ├── AudioService.cs         Core Audio volume per device (NAudio)
 │   ├── ConfigService.cs        JSON config with debounced saves
@@ -198,6 +204,7 @@ PincabVolume/
 │   └── VolumeManager.cs        bindings → volume, per-table memory
 ├── 📁 Converters/              XAML value converters
 ├── 📁 Themes/Dark.xaml         the custom dark theme 🌙
+├── 📁 tools/make-icon.ps1      regenerates AppIcon.ico (all sizes, pixel-crisp)
 └── 📁 Views/                   settings window, OSD, binding picker
 ```
 

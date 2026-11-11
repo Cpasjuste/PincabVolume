@@ -1,7 +1,5 @@
 using System.Threading;
 using System.Windows;
-using System.Windows.Interop;
-using System.Windows.Media.Imaging;
 using PincabVolume.Views;
 
 namespace PincabVolume;
@@ -49,8 +47,6 @@ public partial class App : Application
 
         _main = new MainWindow();
         _tray = new TrayIcon(ShowSettings, ExitApp);
-        _main.Icon = Imaging.CreateBitmapSourceFromHIcon(_tray.Icon.Handle, Int32Rect.Empty,
-            BitmapSizeOptions.FromEmptyOptions());
 
         if (!Config.Configured || !Config.StartMinimized) ShowSettings();
     }

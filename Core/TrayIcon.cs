@@ -1,6 +1,5 @@
 using System;
 using System.Drawing;
-using System.Drawing.Drawing2D;
 using System.Windows.Forms;
 
 namespace PincabVolume;
@@ -10,9 +9,6 @@ public sealed class TrayIcon : IDisposable
 {
     readonly NotifyIcon _notifyIcon;
     readonly Icon _icon;
-
-    /// <summary>Generated app icon, also used for the settings window.</summary>
-    public Icon Icon => _icon;
 
     public TrayIcon(Action openSettings, Action exit)
     {
@@ -29,29 +25,17 @@ public sealed class TrayIcon : IDisposable
         menu.Items.Add("Exit", null, (_, _) => exit());
         foreach (ToolStripItem item in menu.Items) item.Padding = new Padding(8, 4, 24, 4);
 
-        _icon = CreateIcon();
+        _icon = LoadIcon();
         _notifyIcon = new NotifyIcon { Icon = _icon, Text = "Pincab Volume", ContextMenuStrip = menu, Visible = true };
         _notifyIcon.DoubleClick += (_, _) => openSettings();
     }
 
-    static Icon CreateIcon()
+    /// <summary>Picks the best-fitting size (DPI-aware) from the embedded multi-size .ico.</summary>
+    static Icon LoadIcon()
     {
-        using var bmp = new Bitmap(32, 32);
-        using (var g = Graphics.FromImage(bmp))
-        using (var fill = new LinearGradientBrush(new Rectangle(0, 0, 32, 32),
-                   Color.FromArgb(57, 208, 255), Color.FromArgb(182, 92, 255), 45f))
-        using (var font = new Font("Segoe UI Symbol", 16, FontStyle.Bold))
-        {
-            g.SmoothingMode = SmoothingMode.AntiAlias;
-            g.FillEllipse(fill, 1, 1, 30, 30);
-            g.DrawString("♪", font, Brushes.White, 6, 3);
-        }
-
-        var handle = bmp.GetHicon();
-        using var temp = Icon.FromHandle(handle);
-        var icon = (Icon)temp.Clone();
-        Native.DestroyIcon(handle);
-        return icon;
+        var resource = System.Windows.Application.GetResourceStream(new Uri("pack://application:,,,/Assets/AppIcon.ico"));
+        using var stream = resource.Stream;
+        return new Icon(stream, SystemInformation.SmallIconSize);
     }
 
     public void Dispose()

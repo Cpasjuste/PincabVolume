@@ -44,6 +44,11 @@ public class Profile : Observable
     public string VolDown { get; set => Set(ref field, value); }
     public int Step { get; set => Set(ref field, value); } = 2;
     public int MaxVolume { get; set => Set(ref field, value); } = 100;
+
+    /// <summary>When on, tables without a saved volume start at <see cref="DefaultVolume"/> instead of the System volume.</summary>
+    public bool UseDefaultVolume { get; set => Set(ref field, value); }
+
+    public int DefaultVolume { get; set => Set(ref field, value); } = 50;
 }
 
 public class OsdSettings : Observable

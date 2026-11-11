@@ -74,9 +74,6 @@ internal static class Native
     [DllImport("user32.dll")]
     public static extern bool SetWindowPos(IntPtr hwnd, IntPtr after, int x, int y, int cx, int cy, uint flags);
 
-    [DllImport("user32.dll")]
-    public static extern bool DestroyIcon(IntPtr icon);
-
     [DllImport("dwmapi.dll")]
     public static extern int DwmSetWindowAttribute(IntPtr hwnd, int attribute, ref int value, int size);
 }
