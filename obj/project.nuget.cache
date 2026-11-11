@@ -1,0 +1,15 @@
+{
+  "version": 2,
+  "dgSpecHash": "POpQSA6fwNU=",
+  "success": true,
+  "projectFilePath": "D:\\Dev\\PincabVolume\\PincabVolume.csproj",
+  "expectedPackageFiles": [
+    "C:\\Users\\cpasj\\.nuget\\packages\\naudio\\3.3.0\\naudio.3.3.0.nupkg.sha512",
+    "C:\\Users\\cpasj\\.nuget\\packages\\naudio.core\\3.3.0\\naudio.core.3.3.0.nupkg.sha512",
+    "C:\\Users\\cpasj\\.nuget\\packages\\naudio.midi\\3.3.0\\naudio.midi.3.3.0.nupkg.sha512",
+    "C:\\Users\\cpasj\\.nuget\\packages\\naudio.wasapi\\3.3.0\\naudio.wasapi.3.3.0.nupkg.sha512",
+    "C:\\Users\\cpasj\\.nuget\\packages\\naudio.winmm\\3.3.0\\naudio.winmm.3.3.0.nupkg.sha512",
+    "C:\\Users\\cpasj\\.nuget\\packages\\system.numerics.tensors\\9.0.0\\system.numerics.tensors.9.0.0.nupkg.sha512"
+  ],
+  "logs": []
+}

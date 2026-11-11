@@ -1,0 +1,18 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net10.0-windows</TargetFramework>
+    <UseWPF>true</UseWPF>
+    <!-- Only used for the tray icon (NotifyIcon) and monitor enumeration (Screen). -->
+    <UseWindowsForms>true</UseWindowsForms>
+    <Nullable>disable</Nullable>
+    <ImplicitUsings>disable</ImplicitUsings>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+    <RootNamespace>PincabVolume</RootNamespace>
+    <!-- WPF app: per-monitor DPI awareness belongs in app.manifest, not the WinForms API. -->
+    <NoWarn>$(NoWarn);WFO0003</NoWarn>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="NAudio" Version="3.3.0" />
+  </ItemGroup>
+</Project>
