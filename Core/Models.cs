@@ -36,6 +36,9 @@ public class Profile : Observable
     /// <summary>Endpoint id; empty means "default output device".</summary>
     public string DeviceId { get => field ?? ""; set => Set(ref field, value); } = "";
 
+    /// <summary>Last known friendly name; used to find the device again if Windows gives it a new id.</summary>
+    public string DeviceName { get; set => Set(ref field, value); }
+
     /// <summary>Optional key/button that must be held for VolUp/VolDown to act on this profile.</summary>
     [JsonPropertyName("Hotkey")] // name kept for config compatibility
     public string HoldKey { get; set => Set(ref field, value); }

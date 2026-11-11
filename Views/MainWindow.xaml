@@ -131,7 +131,8 @@
                             <Button DockPanel.Dock="Right" Style="{StaticResource IconButton}" Content="&#xE72C;"
                                     Margin="4,0,0,0" ToolTip="Refresh device list" Click="RefreshDevices_Click" />
                             <ComboBox ItemsSource="{Binding Devices, ElementName=Root}" DisplayMemberPath="Name"
-                                      SelectedValuePath="Id" SelectedValue="{Binding DeviceId}" />
+                                      SelectedValuePath="Id" SelectedValue="{Binding DeviceId}"
+                                      SelectionChanged="Device_SelectionChanged" />
                         </DockPanel>
 
                         <TextBlock Grid.Row="2" Text="Hold key" Style="{StaticResource FieldLabel}"

@@ -175,6 +175,10 @@ level (ideally both *not* elevated).
 <summary>🎧 <b>My device shows "(unavailable)"</b></summary>
 
 The device was unplugged or disabled. Plug it back in and hit the ⟳ refresh button next to the device list.
+
+🔁 USB sound cards sometimes get a **new device id** after a reboot or a Windows update. Pincab Volume remembers each
+device's name too, and finds it again by name (even if Windows renamed it to `Speakers (2- USB Audio)`). The profile
+repairs itself, no reconfiguration needed.
 </details>
 
 <details>

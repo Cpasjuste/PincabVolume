@@ -47,14 +47,14 @@ public sealed class VolumeManager
         foreach (var p in Config.Profiles)
         {
             // First time we see a profile: adopt its current device volume as the System volume.
-            if (!system.ContainsKey(p.Id) && AudioService.GetVolume(p.DeviceId) is int current) system[p.Id] = current;
+            if (!system.ContainsKey(p.Id) && AudioService.GetVolume(p) is int current) system[p.Id] = current;
 
             int? volume = null;
             if (table != null && table.TryGetValue(p.Id, out var saved)) volume = saved;
             else if (CurrentTable != null && p.UseDefaultVolume) volume = p.DefaultVolume;
             else if (system.TryGetValue(p.Id, out var sys)) volume = sys;
 
-            if (volume is int v) AudioService.SetVolume(p.DeviceId, Math.Min(v, p.MaxVolume));
+            if (volume is int v) AudioService.SetVolume(p, Math.Min(v, p.MaxVolume));
         }
 
         _store.SaveSoon();
@@ -65,14 +65,14 @@ public sealed class VolumeManager
         CurrentTable = table;
         ApplyContext();
         ContextChanged?.Invoke();
-        if (ActiveProfile is { } p && AudioService.GetVolume(p.DeviceId) is int v) _osd.ShowVolume(p.Name, v, CurrentTable);
+        if (ActiveProfile is { } p && AudioService.GetVolume(p) is int v) _osd.ShowVolume(p.Name, v, CurrentTable);
     }
 
     public void Change(Profile p, int delta)
     {
-        if (AudioService.GetVolume(p.DeviceId) is not int current) return;
+        if (AudioService.GetVolume(p) is not int current) return;
         var next = Math.Clamp(current + delta, 0, p.MaxVolume);
-        AudioService.SetVolume(p.DeviceId, next);
+        AudioService.SetVolume(p, next);
         Bucket(CurrentTable ?? SystemKey)[p.Id] = next;
         _store.SaveSoon();
         _osd.ShowVolume(p.Name, next, CurrentTable);

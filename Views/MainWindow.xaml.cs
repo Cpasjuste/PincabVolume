@@ -4,6 +4,7 @@ using System.ComponentModel;
 using System.Diagnostics;
 using System.Linq;
 using System.Windows;
+using System.Windows.Controls;
 using System.Windows.Interop;
 using System.Windows.Media;
 
@@ -74,10 +75,12 @@ public partial class MainWindow : Window
     /// <summary>Syncs the device list in place so the ComboBox selections are not reset.</summary>
     void RefreshDevices()
     {
+        foreach (var p in App.Config.Profiles) AudioService.Resolve(p); // picks up a device whose id changed
+
         var fresh = AudioService.GetDevices();
         foreach (var p in App.Config.Profiles)
             if (!string.IsNullOrEmpty(p.DeviceId) && fresh.All(d => d.Id != p.DeviceId))
-                fresh.Add(new AudioDeviceInfo(p.DeviceId, "(unavailable) " + p.DeviceId));
+                fresh.Add(new AudioDeviceInfo(p.DeviceId, $"(unavailable) {p.DeviceName ?? p.DeviceId}"));
 
         for (int i = Devices.Count - 1; i >= 0; i--)
             if (fresh.All(f => f.Id != Devices[i].Id))
@@ -138,6 +141,14 @@ public partial class MainWindow : Window
     }
 
     void RefreshDevices_Click(object sender, RoutedEventArgs e) => RefreshDevices();
+
+    /// <summary>Remembers the picked device's name so it can be found again if its id changes.</summary>
+    void Device_SelectionChanged(object sender, SelectionChangedEventArgs e)
+    {
+        if (Selected is { } p && e.AddedItems.Count == 1 && e.AddedItems[0] is AudioDeviceInfo d &&
+            d.Id == p.DeviceId && !d.Name.StartsWith("(unavailable)"))
+            p.DeviceName = d.Id.Length == 0 ? null : d.Name;
+    }
 
     void TestUp_Click(object sender, RoutedEventArgs e)
     {
