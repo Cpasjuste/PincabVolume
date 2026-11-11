@@ -1,0 +1,150 @@
+name: Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Release version (e.g. 1.0.0) - the tag will be v<version>"
+        required: true
+        type: string
+      prerelease:
+        description: "Mark as pre-release"
+        required: false
+        type: boolean
+        default: false
+
+permissions:
+  contents: write # create the tag and the release
+
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+env:
+  PROJECT: PincabVolume.csproj
+  APP_NAME: PincabVolume
+
+jobs:
+  release:
+    runs-on: windows-latest
+    defaults:
+      run:
+        shell: pwsh
+
+    steps:
+      - name: Validate version
+        id: meta
+        env:
+          VERSION: ${{ inputs.version }}
+        run: |
+          $version = $env:VERSION.Trim().TrimStart('v', 'V')
+          if ($version -notmatch '^\d+\.\d+\.\d+(-[0-9A-Za-z.-]+)?$') {
+            Write-Error "Invalid version '$env:VERSION'. Expected something like 1.0.0 or 1.1.0-beta.1"
+            exit 1
+          }
+          "version=$version" >> $env:GITHUB_OUTPUT
+          "tag=v$version"    >> $env:GITHUB_OUTPUT
+
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # needed to check existing tags and build the changelog
+
+      - name: Ensure tag does not exist
+        env:
+          TAG: ${{ steps.meta.outputs.tag }}
+        run: |
+          git fetch --tags --force
+          if (git tag --list $env:TAG) {
+            Write-Error "Tag $env:TAG already exists. Pick another version."
+            exit 1
+          }
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+
+      - name: Restore
+        run: dotnet restore $env:PROJECT -r win-x64
+
+      - name: Publish standalone (single exe, no .NET install needed)
+        env:
+          VERSION: ${{ steps.meta.outputs.version }}
+        run: >
+          dotnet publish $env:PROJECT -c Release -r win-x64 --no-restore
+          --self-contained true
+          -p:PublishSingleFile=true
+          -p:IncludeNativeLibrariesForSelfExtract=true
+          -p:EnableCompressionInSingleFile=true
+          -p:DebugType=none
+          -p:Version=$env:VERSION
+          -o publish/standalone
+
+      - name: Publish framework-dependent (requires .NET 10 Desktop Runtime)
+        env:
+          VERSION: ${{ steps.meta.outputs.version }}
+        run: >
+          dotnet publish $env:PROJECT -c Release -r win-x64 --no-restore
+          --self-contained false
+          -p:DebugType=none
+          -p:Version=$env:VERSION
+          -o publish/framework-dependent
+
+      - name: Package
+        id: package
+        env:
+          VERSION: ${{ steps.meta.outputs.version }}
+        run: |
+          New-Item -ItemType Directory -Force dist | Out-Null
+          $standalone = "dist/$env:APP_NAME-$env:VERSION-win-x64.zip"
+          $fdd        = "dist/$env:APP_NAME-$env:VERSION-win-x64-framework-dependent.zip"
+          Compress-Archive -Path publish/standalone/*          -DestinationPath $standalone
+          Compress-Archive -Path publish/framework-dependent/* -DestinationPath $fdd
+          Get-ChildItem dist | ForEach-Object { "{0}  {1:N1} MB" -f $_.Name, ($_.Length / 1MB) }
+
+      - name: Write release notes
+        env:
+          VERSION: ${{ steps.meta.outputs.version }}
+          TAG: ${{ steps.meta.outputs.tag }}
+        run: |
+          $previous = git describe --tags --abbrev=0 2>$null
+          $range = if ($previous) { "$previous..HEAD" } else { "HEAD" }
+          $changes = git log $range --no-merges --pretty=format:"- %s (%h)"
+          if (-not $changes) { $changes = "- No changes listed" }
+
+          @"
+          ## 🔊 Pincab Volume $env:VERSION
+
+          ### 📦 Downloads
+
+          | File | What it is |
+          |---|---|
+          | ``$env:APP_NAME-$env:VERSION-win-x64.zip`` | ✅ **Recommended.** Single ``PincabVolume.exe``, no .NET install needed. |
+          | ``$env:APP_NAME-$env:VERSION-win-x64-framework-dependent.zip`` | 🪶 Small build, needs the [.NET 10 Desktop Runtime (x64)](https://dotnet.microsoft.com/download/dotnet/10.0). |
+
+          Unzip anywhere and run ``PincabVolume.exe``. Settings live in ``%APPDATA%\PincabVolume\config.json``.
+
+          ### 📝 Changes$(if ($previous) { " since $previous" })
+
+          $($changes -join "`n")
+          "@ | Set-Content -Encoding utf8 release-notes.md
+
+          Get-Content release-notes.md
+
+      - name: Create tag and GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VERSION: ${{ steps.meta.outputs.version }}
+          TAG: ${{ steps.meta.outputs.tag }}
+          PRERELEASE: ${{ inputs.prerelease }}
+        run: |
+          $flags = @()
+          if ($env:PRERELEASE -eq 'true') { $flags += '--prerelease' }
+
+          # gh creates the tag on the commit this workflow ran from.
+          gh release create $env:TAG dist/*.zip `
+            --target $env:GITHUB_SHA `
+            --title "Pincab Volume $env:VERSION" `
+            --notes-file release-notes.md `
+            @flags
