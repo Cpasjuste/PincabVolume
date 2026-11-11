@@ -91,8 +91,10 @@ public sealed class VolumeManager
             if (!hold.All(_input.IsHeld)) continue;
 
             var rest = pressed.Except(hold).ToArray();
-            if (SameTokens(rest, p.VolUp)) Change(p, p.Step);
-            else if (SameTokens(rest, p.VolDown)) Change(p, -p.Step);
+            if (rest.Length == 0) continue; // only the hold key itself was pressed
+
+            if (SameTokens(rest, p.VolUp, hold)) Change(p, p.Step);
+            else if (SameTokens(rest, p.VolDown, hold)) Change(p, -p.Step);
             else continue;
             handled = true;
         }
@@ -104,10 +106,14 @@ public sealed class VolumeManager
         if (target != null) Change(target, target.VolUp == binding ? target.Step : -target.Step);
     }
 
-    static bool SameTokens(string[] tokens, string binding)
+    /// <summary>
+    /// True when <paramref name="tokens"/> equal the binding's tokens, ignoring the hold key's tokens:
+    /// a gamepad binding captured while holding the hold button ("Start + A") still means "A".
+    /// </summary>
+    static bool SameTokens(string[] tokens, string binding, string[] holdTokens)
     {
         if (string.IsNullOrEmpty(binding)) return false;
-        var expected = InputService.Tokens(binding);
+        var expected = InputService.Tokens(binding).Except(holdTokens).ToArray();
         return expected.Length == tokens.Length && !expected.Except(tokens).Any();
     }
 }

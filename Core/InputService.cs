@@ -194,6 +194,11 @@ public sealed class InputService : IDisposable
 
                 _ui.BeginInvoke(() => BindingTriggered?.Invoke(binding));
             }
+            else if (down && modifier != null && _capture == null)
+            {
+                // Lone modifiers can be bindings too (cab flippers are often Shift, magna-saves Ctrl).
+                _ui.BeginInvoke(() => BindingTriggered?.Invoke(modifier));
+            }
         }
 
         return Native.CallNextHookEx(_hook, code, wParam, lParam);
